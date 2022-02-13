@@ -1,5 +1,6 @@
 ﻿using MySql.Data.MySqlClient;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -106,15 +107,29 @@ namespace Core.MySQL
         {
             var type = typeof(T);
             var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            string column = "";
 
             foreach (var property in properties)
             {
-                if (!Enumerable.Range(0, reader.FieldCount).Any(i => reader.GetName(i).ToLower().Equals(property.Name.ToLower())))
+                column = GetColumnName(property);
+                if (!Enumerable.Range(0, reader.FieldCount).Any(i => reader.GetName(i).ToLower().Equals(column)))
                 {
                     continue;
                 }
-                property.SetValue(t, reader[property.Name]);
+                property.SetValue(t, reader[column]);
             }
+        }
+
+        private string GetColumnName(PropertyInfo property)
+        {
+            foreach (var attribute in property.GetCustomAttributes(true))
+            {
+                if (attribute is ColumnAttribute column)
+                {
+                    return column.Name;
+                }
+            }
+            return property.Name.ToLower();
         }
 
         private void RegisterDateFormat()
