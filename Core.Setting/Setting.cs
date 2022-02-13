@@ -6,6 +6,8 @@ namespace Core.Setting
 {
     public class Setting<T> where T : new()
     {
+        public string FilePath { get; set; } = $"{Directory.GetCurrentDirectory()}/Setting/{new T().ToString().Split('.').Last()}.json";
+
         private T _instance;
 
         /// <summary>
@@ -17,40 +19,31 @@ namespace Core.Setting
         }
 
         /// <summary>
-        /// Возвращает имя настройки
-        /// </summary>
-        /// <returns></returns>
-        protected virtual string GetFileName()
-        {
-            return $"{Directory.GetCurrentDirectory()}/setting/{new T().ToString().Split('.').Last()}.json";
-        }
-
-        /// <summary>
         /// Создает директорию, если ее нет
         /// </summary>
         private void CreateDirectory()
         {
-            if (!Directory.Exists(Path.GetDirectoryName(GetFileName())))
+            if (!Directory.Exists(Path.GetDirectoryName(FilePath)))
             {
-                Directory.CreateDirectory(Path.GetDirectoryName(GetFileName()));
+                Directory.CreateDirectory(Path.GetDirectoryName(FilePath));
             }
         }
 
         /// <summary>
         /// Создает файл. Если файл уже есть, то пересоздает его
         /// </summary>
-        protected virtual void CreateFile()
+        private void CreateFile()
         {
-            if (File.Exists(GetFileName()))
+            if (File.Exists(FilePath))
             {
-                File.Delete(GetFileName());
+                File.Delete(FilePath);
             }
             CreateDirectory();
 
             InitInstance();
 
             var json = JsonSerializer.Serialize(_instance, new JsonSerializerOptions() { WriteIndented = true });
-            var file = File.CreateText(GetFileName());
+            var file = File.CreateText(FilePath);
 
             file.WriteLine(json);
             file.Close();
@@ -60,14 +53,14 @@ namespace Core.Setting
         /// Возращает настройки
         /// </summary>
         /// <returns></returns>
-        public virtual T GetSetting()
+        public T GetSetting()
         {
-            if (!File.Exists(GetFileName()))
+            if (!File.Exists(FilePath))
             {
                 CreateFile();
             }
 
-            string json = File.ReadAllText(GetFileName());
+            string json = File.ReadAllText(FilePath);
             _instance = JsonSerializer.Deserialize<T>(json);
 
             return _instance;

@@ -2,9 +2,9 @@
 {
     public class Configuration
     {
-        public string[] Debug { get; set; }
-        public string[] Info { get; set; }
-        public string[] Error { get; set; }
-        public string[] Warning { get; set; }
+        public string[] Debug { get; set; } = new string[1] { "Console" };
+        public string[] Info { get; set; } = new string[1] { "Console" };
+        public string[] Error { get; set; } = new string[1] { "Console" };
+        public string[] Warning { get; set; } = new string[1] { "Console" };
     }
 }
