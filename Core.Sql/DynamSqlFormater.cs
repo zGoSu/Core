@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -14,8 +15,6 @@ namespace Core.Sql
 
         public List<string> Ignored { get; set; }
 
-        public string TableName { get; set; }
-
         public DynamSqlFormater()
         {
             var type = typeof(T);
@@ -25,14 +24,16 @@ namespace Core.Sql
 
         private string GetInsert()
         {
-            var table = TableName ?? new T().ToString()?.Split('.').Last();
-            var builder = new StringBuilder($"INSERT INTO {table} (");
+            var table = GetTableName();
+            var builder = new StringBuilder($"INSERT INTO `{table}` (");
+            string column;
 
             foreach (var property in _properties)
             {
+                column = GetColumnName(property);
                 if (!(Ignored ?? new List<string>()).Any(i => property.Name.Equals(i)))
                 {
-                    builder.Append($"`{property.Name}`, ");
+                    builder.Append($"`{column}`, ");
                 }
             }
             builder.Remove(builder.Length - 2, 2).Append(") VALUES ");
@@ -82,7 +83,7 @@ namespace Core.Sql
             return value;
         }
 
-        public string GetInsertIntoQuery(List<T> data)
+        public string GetInsertIntoQuery(IReadOnlyList<T> data)
         {
             var sql = new StringBuilder();
 
@@ -96,6 +97,30 @@ namespace Core.Sql
             }
 
             return sql.Replace(",INSERT INTO", ";INSERT INTO").Remove(sql.Length - 1, 1).ToString();
+        }
+
+        private string GetColumnName(PropertyInfo property)
+        {
+            foreach (var attribute in property.GetCustomAttributes(true))
+            {
+                if (attribute is ColumnAttribute column)
+                {
+                    return column.Name;
+                }
+            }
+            return property.Name.ToLower();
+        }
+
+        private string GetTableName()
+        {
+            foreach (var attribute in typeof(T).GetCustomAttributes())
+            {
+                if (attribute is TableAttribute column)
+                {
+                    return column.Name;
+                }
+            }
+            return new T().ToString()?.Split('.').Last();
         }
     }
 }
