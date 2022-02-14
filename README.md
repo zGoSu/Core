@@ -5,29 +5,27 @@
 
 Пример реализации:
 ```c#
-// Конструктор (пример места, где можно инициализировать Logger)
-public Global()
+public static ILogger Logger { get; private set; }
+
+public static void Initialization()
 {
-    AddLoggers();
+    Logger = GetLoggers();
 }
 
-public ILogger Logger { get; private set; }
-
-// Метод инициализации Logger
-private void AddLoggers()
+private static Logger GetLoggers()
 {
-    var configuration = new Setting<Core.Logger.Configuration>() { FilePath = $"{Directory.GetCurrentDirectory()}/Setting/Logger.json" }.GetSetting();
+    var configuration = new Setting<Configuration>() { FilePath = $"{Directory.GetCurrentDirectory()}/Setting/Logger.json" }.GetSetting();
     var loggers = new List<ILogger>()
     {
         new ConsoleLogger() { Configuration = configuration },
         new FileLogger() { Configuration = configuration }
     };
-    Logger = new Logger(loggers);
+    return new Logger(loggers);
 }
 ```
 ***FilePath*** - как будет называться наш файл конфигурации и в каком каталоге. По умолчанию он берет имя класса, на основе которого создается конфигурация. В примере 
 ```c# 
-new Setting<Core.Logger.Configuration>()
+new Setting<Configuration>()
 ``` 
 файл будет называться Configuration.
 
