@@ -34,16 +34,13 @@ namespace Core.Setting
         /// </summary>
         private void CreateFile()
         {
-            if (File.Exists(FilePath))
-            {
-                File.Delete(FilePath);
-            }
+            File.Delete(FilePath);
             CreateDirectory();
 
             InitInstance();
 
             var json = JsonSerializer.Serialize(_instance, new JsonSerializerOptions() { WriteIndented = true });
-            var file = File.CreateText(FilePath);
+            using var file = File.CreateText(FilePath);
 
             file.WriteLine(json);
             file.Close();
@@ -60,7 +57,7 @@ namespace Core.Setting
                 CreateFile();
             }
 
-            string json = File.ReadAllText(FilePath);
+            var json = File.ReadAllText(FilePath);
             _instance = JsonSerializer.Deserialize<T>(json);
 
             return _instance;
