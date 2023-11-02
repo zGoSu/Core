@@ -32,9 +32,12 @@ namespace Core.Setting
         /// <summary>
         /// Создает файл. Если файл уже есть, то пересоздает его
         /// </summary>
-        private void CreateFile()
+        public void CreateFile()
         {
-            File.Delete(FilePath);
+            if (File.Exists(FilePath))
+            {
+                File.Delete(FilePath);
+            }
             CreateDirectory();
 
             InitInstance();
